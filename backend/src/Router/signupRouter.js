@@ -12,38 +12,43 @@ signupRouter.post("/signup",async(req,res)=>{
         const email = req.body.email;
 
         if(!req.body.username){
-            res
+            return res
+                .status(400)
                 .json({
                     message : "Username is required"
                 })
         }
 
         if(!validator.isEmail(email) || !email){
-            res
+            return res
+                .status(400)
                 .json({
                     message : "This is not a valid Email"
                 })
         }
-
+        
+        const password = req.body.password;
+        const isValidPassword = validator.isStrongPassword(password);
+        if(!isValidPassword){
+            return res
+                .status(400)
+                .json({
+                    message : "Enter a Strong password"
+                })
+        }
+        
         const emailfound = await Users.findOne({email : req.body.email})
 
         if(emailfound){
-            res
+            return res
+                .status(400)
                 .json({
                     message : "User already exist"
                 })
         }
 
-        const password = req.body.password;
 
-        const isValidPassword = validator.isStrongPassword(password);
 
-        if(!isValidPassword){
-            res
-                .json({
-                    message : "Enter a Strong password"
-                })
-        }
 
         let user = new Users({
             username : req.body.username,
@@ -53,12 +58,13 @@ signupRouter.post("/signup",async(req,res)=>{
         });
        
         await user.save();
-        res
+        return res
             .status(200)
             .json({message : "User saved successfully"})
     }
     catch(error){
-        res
+        return res
+            .status(400)
             .json({
                 message : `something went wrong : ${error}`
             })
